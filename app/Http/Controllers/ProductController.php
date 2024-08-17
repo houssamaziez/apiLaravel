@@ -22,7 +22,10 @@ class ProductController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'message' => 'An error occurred in the process.',
+
+                'errors' => $validator->errors(),
+                'state' => '106',
             ], 422);
         }
 
@@ -31,18 +34,28 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully',
-            'data' => $product
-        ], 201);
+            'data' => $product,
+            'state' => '105',
+
+        ], 200);
     }
 
     // Get all products
     public function index()
     {
-        $products = Product::all();
+        $products = Product::orderBy('created_at', 'desc')->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'message' => 'No products found',
+                'state' => '106',
+            ], 404);
+        }
 
         return response()->json([
             'message' => 'Products retrieved successfully',
-            'data' => $products
+            'data' => $products,
+            'state' => '105',
         ], 200);
     }
 
@@ -51,31 +64,40 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json([
-                'message' => 'Product not found'
+                'message' => 'Product not found',
+                'state' => '106',
+
             ], 404);
         }
 
         return response()->json([
             'message' => 'Product retrieved successfully',
-            'data' => $product
+            'data' => $product,
+            'state' => '105',
+
         ], 200);
     }
+
     public function showAllProductUser($userId)
     {
-        // جلب جميع المنتجات التي تخص المستخدم المحدد بواسطة user_id
-        $products = Product::where('user_id', $userId)->get();
+
+        $products = Product::where('user_id', $userId)
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         if ($products->isEmpty()) {
             return response()->json([
-                'message' => 'No products found for this user'
+                'message' => 'No products found for this user',
+                'state' => '106',
             ], 404);
         }
 
         return response()->json([
             'message' => 'Products retrieved successfully',
-            'data' => $products
+            'data' => $products,
+            'state' => '105',
         ], 200);
     }
 
@@ -84,9 +106,11 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json([
-                'message' => 'Product not found'
+                'message' => 'Product not found',
+                'state' => '106',
+
             ], 404);
         }
 
@@ -100,19 +124,23 @@ class ProductController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
+                'state' => '106',
+
             ], 422);
         }
 
         // Get validated data and filter out null values
         $validatedData = array_filter($validator->validated(), function ($value) {
-            return !is_null($value);
+            return ! is_null($value);
         });
 
         // Check if all fields are null
         if (empty($validatedData)) {
             return response()->json([
-                'message' => 'No data provided for update add name or description ...'
+                'message' => 'No data provided for update add name or description ...',
+                'state' => '106',
+
             ], 400);
         }
 
@@ -121,32 +149,36 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product updated successfully',
-            'data' => $product
+            'data' => $product,
+            'state' => '105',
+
         ], 200);
     }
-
 
     public function search($keyword)
     {
         // Check the keyword value
-        \Log::info('Search keyword: ' . $keyword);
+        \Log::info('Search keyword: '.$keyword);
 
-        $products = Product::where('name', 'like', '%' . $keyword . '%')->get();
+        $products = Product::where('name', 'like', '%'.$keyword.'%')->get();
 
-        \Log::info('Found products: ' . $products->count());
+        \Log::info('Found products: '.$products->count());
 
         if ($products->isEmpty()) {
             return response()->json([
-                'message' => 'Product not found'
+                'message' => 'Product not found',
+                'state' => '106',
+
             ], 404);
         }
 
         return response()->json([
             'message' => 'Products retrieved successfully',
-            'data' => $products
+            'data' => $products,
+            'state' => '105',
+
         ], 200);
     }
-
 
     public function delete($id)
     {
@@ -154,9 +186,11 @@ class ProductController extends Controller
         $product = Product::find($id);
 
         // Check if the product exists
-        if (!$product) {
+        if (! $product) {
             return response()->json([
-                'message' => 'Product not found'
+                'message' => 'Product not found',
+                'state' => '106',
+
             ], 404);
         }
 
@@ -164,9 +198,8 @@ class ProductController extends Controller
         $product->delete();
 
         return response()->json([
-            'message' => 'Product deleted successfully'
+            'message' => 'Product deleted successfully',
+
         ], 200);
     }
-
-
 }
